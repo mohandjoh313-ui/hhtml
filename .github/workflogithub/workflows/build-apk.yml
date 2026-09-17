@@ -1,0 +1,43 @@
+name: Build INGCO APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'index.html'
+      - 'android-app/**'
+      - '.github/workflows/build-apk.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Copy V25 into Android app
+        run: |
+          mkdir -p android-app/app/src/main/assets
+          cp index.html android-app/app/src/main/assets/index.html
+
+      - name: Build APK
+        working-directory: android-app
+        run: gradle assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: INGCO-V25-APK
+          path: android-app/app/build/outputs/apk/debug/app-debug.apk
